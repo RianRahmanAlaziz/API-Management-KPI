@@ -136,7 +136,7 @@ class DepartementController extends Controller
                 ], 404);
             }
 
-            if (method_exists($departement, 'jabatans') && $departement->jabatans()->exists()) {
+            if (method_exists($departement, 'jabatan') && $departement->jabatan()->exists()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Departement tidak dapat dihapus karena masih terhubung dengan Jabatan.'

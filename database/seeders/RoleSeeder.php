@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
@@ -70,5 +71,8 @@ class RoleSeeder extends Seeder
         $roleAdmin->givePermissionTo($permission);
         $roleHrd->givePermissionTo($permission1);
         $roleKaryawan->givePermissionTo($permission3);
+
+        $admin = User::find(1);
+        $admin->assignRole('Admin');
     }
 }

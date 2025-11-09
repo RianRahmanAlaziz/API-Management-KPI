@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -38,6 +41,10 @@ class AuthController extends Controller
                 'search' => $request->input('search'),
             ]),
         ], 200);
+    }
+    public function me()
+    {
+        return response()->json(auth('api')->user());
     }
 
     /**
@@ -207,7 +214,8 @@ class AuthController extends Controller
     {
         $credentials = $request->only('email', 'password');
 
-        if (!$token = auth()->attempt($credentials)) {
+        // Gunakan guard 'api' secara eksplisit (JWT)
+        if (! $token = Auth::guard('api')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -224,7 +232,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('api')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -241,7 +249,16 @@ class AuthController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh());
+        try {
+            // Ambil token lama dan buat token baru
+            $newToken = JWTAuth::parseToken()->refresh();
+
+            return $this->respondWithToken($newToken);
+        } catch (JWTException $e) {
+            return response()->json([
+                'error' => 'Token tidak valid atau sudah kedaluwarsa'
+            ], 401);
+        }
     }
 
     protected function respondWithToken($token)
@@ -249,7 +266,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'expires_in' => JWTAuth::factory()->getTTL() * 60
         ]);
     }
 }

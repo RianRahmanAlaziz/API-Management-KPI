@@ -3,29 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Jabatan;
+use App\Models\KpiCategories;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class JabatanController extends Controller
+class KpiCategoriesController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $query = Jabatan::with('departement');
-
+        $query = KpiCategories::query();
         if ($request->has('search')) {
             $search = $request->input('search');
-            $query->where('n_jabatan', 'like', "%{$search}%");
+            $query->where('name', 'like', "%{$search}%");
         }
-        $jabatan = $query->paginate(10);
+        $KpiCategories = $query->paginate(10);
 
         return response()->json([
             'status' => true,
-            'message' => 'Data semua Jabatan berhasil diambil',
-            'data' => $jabatan->appends([
+            'message' => 'Data semua Kpi Categories berhasil diambil',
+            'data' => $KpiCategories->appends([
                 'search' => $request->input('search'),
             ]),
         ], 200);
@@ -46,19 +45,19 @@ class JabatanController extends Controller
     {
         try {
             $request->validate([
-                'n_jabatan' => 'required|string|max:255',
-                'departement_id' => 'required',
+                'name' => 'required|string|max:255',
+                'description' => 'nullable',
             ]);
 
-            $jabatan = Jabatan::create([
-                'departement_id' => $request->departement_id,
-                'n_jabatan' => $request->n_jabatan,
+            $KpiCategories = KpiCategories::create([
+                'name' => $request->name,
+                'description' => $request->description,
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Jabatan created successfully',
-                'data' => $jabatan
+                'message' => 'Kpi Categories created successfully',
+                'data' => $KpiCategories
             ], 201);
         } catch (ValidationException $e) {
             // ✅ Kirim response validasi manual
@@ -78,7 +77,7 @@ class JabatanController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Jabatan $jabatan)
+    public function show(KpiCategories $kpiCategories)
     {
         //
     }
@@ -86,7 +85,7 @@ class JabatanController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Jabatan $jabatan)
+    public function edit(KpiCategories $kpiCategories)
     {
         //
     }
@@ -98,17 +97,17 @@ class JabatanController extends Controller
     {
         try {
             $validatedData = $request->validate([
-                'n_jabatan' => 'required|string|max:255',
-                'departement_id' => 'required',
+                'name' => 'required|string|max:255',
+                'description' => 'nullable',
             ]);
 
-            $jabatan = Jabatan::findOrFail($id);
-            $jabatan->update($validatedData);
+            $KpiCategories = KpiCategories::findOrFail($id);
+            $KpiCategories->update($validatedData);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Jabatan berhasil diperbarui',
-                'data' => $jabatan
+                'message' => 'Kpi Categories berhasil diperbarui',
+                'data' => $KpiCategories
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
@@ -131,39 +130,39 @@ class JabatanController extends Controller
     public function destroy($id)
     {
         try {
-            $jabatan = Jabatan::find($id);
+            $KpiCategories = KpiCategories::find($id);
 
-            if (!$jabatan) {
+            if (!$KpiCategories) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Jabatan tidak ditemukan.'
+                    'message' => 'Kpi Categories tidak ditemukan.'
                 ], 404);
             }
 
-            // if (method_exists($jabatan, 'jabatan') && $jabatan->jabatan()->exists()) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'jabatan tidak dapat dihapus karena masih terhubung dengan Jabatan.'
-            //     ], 400);
-            // }
+            if (method_exists($KpiCategories, 'KpiIndicator') && $KpiCategories->KpiIndicator()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kpi Categories tidak dapat dihapus karena masih terhubung dengan Jabatan.'
+                ], 400);
+            }
 
-            $jabatan->delete();
+            $KpiCategories->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Jabatan berhasil dihapus.'
+                'message' => 'Kpi Categories berhasil dihapus.'
             ], 200);
         } catch (\Illuminate\Database\QueryException $e) {
             // Jika gagal karena constraint relasi database
             return response()->json([
                 'success' => false,
-                'message' => 'Jabatan tidak dapat dihapus karena masih terhubung dengan data lain.',
+                'message' => 'Kpi Categories tidak dapat dihapus karena masih terhubung dengan data lain.',
                 'error' => $e->getMessage()
             ], 409);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus Jabatan. Silakan coba lagi.'
+                'message' => 'Gagal menghapus KpiCategories. Silakan coba lagi.'
             ], 500);
         }
     }
